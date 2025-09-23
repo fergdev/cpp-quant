@@ -32,7 +32,6 @@ int main(){
   md.start();
   ws.start();
 
-  // fan-out ticks to ws/persist
   std::thread([&]{
     Tick t;
     for(;;){
@@ -48,6 +47,6 @@ int main(){
 
   std::vector<std::thread> pool;
   for (int i=0;i<2;++i) pool.emplace_back([&]{ ioc.run(); });
-  for (auto& th : pool) th.join(); // keep process alive
+  for (auto& th : pool) th.join();
   return 0;
 }
