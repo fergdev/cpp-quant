@@ -1,0 +1,14 @@
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/*.cmake
+.cache/
+
+/vcpkg_installed/
+/vcpkg-*
+
+*.swp
+*.swo
+*.idea/
+.vscode/
+*.DS_Store

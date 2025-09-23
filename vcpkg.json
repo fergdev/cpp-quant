@@ -1,0 +1,13 @@
+{
+  "name": "cpp-quant",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "boost-asio",
+    "boost-beast",
+    "boost-system",
+    "boost-lockfree",
+    "openssl",
+    "nlohmann-json",
+    "sqlite3"
+  ]
+}
