@@ -14,6 +14,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: lukka/get-cmake@latest
       - uses: lukka/run-vcpkg@v11
+        with:
+          # This is the default location of the directory containing vcpkg sources.
+          # Change it to the right location if needed.
+          # vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+
+          # If not using a Git submodule for vcpkg sources, this input
+          # specifies which commit id to checkout from a Git repo.
+          # Notes:
+          # - it must _not_ be set if using a Git submodule for vcpkg.
+          # - if not provided, the `vcpkgConfigurationJsonGlob` or `vcpkgJsonGlob`
+          #   are being used to locate either a vcpkg-configuration.json or vcpkg.json
+          #   in order to use the builtin-baseline or the default-registry's
+          #   builtin baseline.
+          vcpkgGitCommitId: "${{ matrix.vcpkgCommitId }}"
+
+          # This is only needed if the command `vcpkg install` must run at this step.
+          # Instead it is highly suggested to let `run-cmake` to run vcpkg later on
+          # using the vcpkg.cmake toolchain. The default is `false`.
+          # runVcpkgInstall: true
 
       - name: Configure CMake
         run: cmake -S . -B build -G Ninja \
