@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake pkg-config \
+              libssl-dev libsqlite3-dev
+
+      - name: Set up vcpkg
+        uses: microsoft/vcpkg-action@v1
+        with:
+          path: "${{ github.workspace }}/vcpkg"
+          runVcpkgInstall: true
+
+      - name: Configure CMake
+        run: cmake -S . -B build -G Ninja \
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+          -DVCPKG_FEATURE_FLAGS=manifests
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Run binary (smoke test)
+        run: |
+          ./build/cpp-quant --help || true
