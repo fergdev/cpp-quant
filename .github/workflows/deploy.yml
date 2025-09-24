@@ -23,11 +23,15 @@ jobs:
 
       - name: Build & push (linux/amd64) with cache
         run: |
+          REG=registry.digitalocean.com/quant-registry
+          IMAGE=cpp-quant
+          CACHE_TAG=buildcache
+
           docker buildx build \
             --platform linux/amd64 \
-            -t $REG/$IMAGE:$TAG -t $REG/$IMAGE:latest \
-            --cache-to=type=registry,ref=$REG/build-cache:$IMAGE,mode=max \
-            --cache-from=type=registry,ref=$REG/build-cache:$IMAGE \
+            -t $REG/$IMAGE:${{ github.sha }} -t $REG/$IMAGE:latest \
+            --cache-to=type=registry,ref=$REG/$IMAGE:$CACHE_TAG,mode=max \
+            --cache-from=type=registry,ref=$REG/$IMAGE:$CACHE_TAG \
             --push .
 
       - name: Kubeconfig
