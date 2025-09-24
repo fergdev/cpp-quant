@@ -5,7 +5,7 @@ on:
     branches: ["main"]
     paths:
       - "engine/**"
-      - ".github/workflows/engine/**"
+      - ".github/workflows/engine**"
 
 jobs:
   docker:
