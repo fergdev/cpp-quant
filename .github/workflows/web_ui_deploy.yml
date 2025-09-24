@@ -1,4 +1,4 @@
-name: deploy-web-ui
+name: web-ui-build
 on:
   pull_request:
     branches: ["main"]

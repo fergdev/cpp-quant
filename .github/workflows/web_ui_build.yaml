@@ -1,4 +1,4 @@
-name: build-web-ui
+name: web-ui-build
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: build
+name: engine-build
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: lukka/get-cmake@latest
       - uses: lukka/run-vcpkg@v11
-      - name: Configure (CMake + vcpkg toolchain)
+      - name: Configure
         run: |
           cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -31,9 +31,6 @@ jobs:
 
       - name: Build
         run: cmake --build "$BUILD_DIR" -j
-
-      - name: Debug list build dir
-        run: ls -lah "${{ env.BUILD_DIR }}"
 
       - name: Archive
         uses: actions/upload-artifact@v4
