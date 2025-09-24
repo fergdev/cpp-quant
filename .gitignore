@@ -12,3 +12,14 @@
 *.idea/
 .vscode/
 *.DS_Store
+
+terraform.env
+.env*
+
+# Terraform
+/infra/.terraform/
+#infra/.terraform.lock.hcl
+/infra/*.tfstate
+/infra/*.tfstate.*
+/infra/terraform.tfvars
+/infra/.auto.tfvars
