@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     env:
+      CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY }}
       ROOT_DIR: web-ui
       REPO: cpp-quant
     steps:
