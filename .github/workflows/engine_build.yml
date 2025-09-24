@@ -1,0 +1,40 @@
+name: engine-build
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "engine/**"
+      - ".github/workflows/engine/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "engine/**"
+      - ".github/workflows/engine/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ROOT_DIR: engine
+      BUILD_DIR: engine/build
+    steps:
+      - uses: actions/checkout@v5
+      - uses: lukka/get-cmake@latest
+      - uses: lukka/run-vcpkg@v11
+      - name: Configure
+        run: |
+          cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_FEATURE_FLAGS=manifests
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" -j
+
+      - name: Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: quant_engine
+          path: ${{ env.BUILD_DIR }}/quant_engine
+          if-no-files-found: error

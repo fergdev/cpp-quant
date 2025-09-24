@@ -1,16 +1,20 @@
-name: deploy
+name: engine-deploy
+
 on:
-  push: { branches: ["main"] }
+  push:
+    branches: ["main"]
+    paths:
+      - "engine/**"
+      - ".github/workflows/engine/**"
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+    environment: staging
     env:
-      REG: registry.digitalocean.com/quant-registry
-      IMAGE: cpp-quant
+      ROOT_DIR: engine
+      IMAGE: quant-engine
       TAG: ${{ github.sha }}
-      DO_CLUSTER: quant-dev
-      K8S_NS: quant
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
@@ -25,8 +29,8 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
-            -t $REG/$IMAGE:${{ github.sha }} -t $REG/$IMAGE:latest \
-            --push .
+            -t $CONTAINER_REGISTRY/$IMAGE:${{ github.sha }} -t "$CONTAINER_REGISTRY/$IMAGE:latest" \
+            --push ${ROOT_DIR}
 
       # - name: Prune old tags
       #   run: ./scripts/prune-docr-tags.sh
@@ -36,5 +40,5 @@ jobs:
 
       - name: Rollout new image
         run: |
-          kubectl -n $K8S_NS set image deploy/$IMAGE app=$REG/$IMAGE:$TAG
+          kubectl -n $K8S_NS set image deploy/$IMAGE app=$CONTAINER_REGISTRY/$IMAGE:$TAG
           kubectl -n $K8S_NS rollout status deploy/$IMAGE

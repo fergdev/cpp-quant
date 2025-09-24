@@ -16,6 +16,12 @@ variable "namespace" {
   default     = "cppq"
 }
 
+variable "cluster_issuer" {
+  description = "The name of the cert-manager ClusterIssuer to use for TLS (e.g. letsencrypt-prod)"
+  type        = string
+  default     = "letsencrypt-prod"
+}
+
 variable "registry_name" {
   description = "DigitalOcean Container Registry name"
   type        = string
@@ -31,7 +37,7 @@ variable "image_registry" {
 variable "image_name" {
   description = "App image name"
   type        = string
-  default     = "cpp-quant"
+  default     = "quant_engine"
 }
 
 variable "image_tag" {
@@ -60,4 +66,28 @@ variable "registry_host" {
   description = "Registry host (DigitalOcean Container Registry endpoint)"
   type        = string
   default     = "registry.digitalocean.com"
+}
+
+variable "monitoring_namespace" {
+  description = "Monitoring namespace"
+  type        = string
+  default     = "monitoring"
+}
+
+variable "grafana_host" {
+  description = "FQDN for Grafana (via Ingress)"
+  type        = string
+  default     = "grafana.fergdev.io"
+}
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password"
+  type        = string
+  sensitive   = true
+}
+
+variable "loki_host" {
+  description = "Optional FQDN for Loki query-frontend (leave empty to skip Ingress)"
+  type        = string
+  default     = ""
 }

@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libsqlite3-0 \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=build /src/build/cpp_quant /app/cpp_quant
+COPY --from=build /src/build/quant_engine /app/quant_engine
 EXPOSE 8080
 ENV CPPQ_WS_PORT=8080
-CMD ["/app/cpp_quant"]
+CMD ["/app/quant_engine"]

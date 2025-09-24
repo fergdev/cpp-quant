@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-export type Tick = { px:number; sym:string; ts:number; type:'tick' };
+export type Tick = { px: number; sym: string; ts: number; type: 'tick' };
 
 export function useWS(url: string) {
   const [connected, setConnected] = useState(false);
@@ -25,7 +25,9 @@ export function useWS(url: string) {
         try {
           const t = JSON.parse(ev.data);
           if (t?.type === 'tick') setLastTick(t);
-        } catch {}
+        } catch {
+          console.log('ws message parse error')
+        }
       };
     };
     connect();

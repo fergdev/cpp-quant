@@ -1,7 +1,19 @@
 version: 2
 updates:
-  - package-ecosystem: "vcpkg"
+  - package-ecosystem: docker
     directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: npm
+    directory: "/web-ui"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: terraform
+    directory: "/infra"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "vcpkg"
+    directory: "engine"
     schedule:
       interval: "weekly"
   - package-ecosystem: github-actions
