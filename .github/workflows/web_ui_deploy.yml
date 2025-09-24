@@ -47,8 +47,8 @@ jobs:
       # - name: Prune old DOCR tags
       #   run: ./scripts/prune-docr-tags.sh || true
 
-      - name: Fetch kubeconfig
-        run: doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
+      - name: Kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ vars.CONTAINER_REGISTRY }}
 
       - name: Rollout web-ui
         run: |
