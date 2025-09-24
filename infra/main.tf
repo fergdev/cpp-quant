@@ -12,26 +12,6 @@ locals {
   })
 }
 
-# locals {
-#   dockerconfigjson = jsonencode({
-#     auths = {
-#       "${var.image_registry}" = {
-#         auth = base64encode("oauth2accesstoken:${var.do_token}")
-#       }
-#     }
-#   })
-# }
-# locals {
-#   dockerconfigjson = jsonencode({
-#     auths = {
-#       # DOCR requires the hostname as the key
-#       (var.registry_host) = {
-#         auth = base64encode("oauth2accesstoken:${var.do_token}")
-#       }
-#     }
-#   })
-# }
-
 resource "kubernetes_secret" "docr_pull" {
   metadata {
     name      = "do-registry"
