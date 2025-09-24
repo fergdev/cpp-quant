@@ -9,25 +9,33 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    env:
+      ROOT_DIR: engine
+      BUILD_DIR: engine/build
     steps:
       - uses: actions/checkout@v5
       - uses: lukka/get-cmake@latest
       - uses: lukka/run-vcpkg@v11
 
-      - name: CMake
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: "ninja-multi-vcpkg"
-          buildPreset: "ninja-multi-vcpkg"
-          buildPresetAdditionalArgs: "['--config Release']"
+      # - name: CMake
+      #   uses: lukka/run-cmake@v10
+      #   with:
+      #     configurePreset: "ninja-multi-vcpkg"
+      #     buildPreset: "ninja-multi-vcpkg"
+      #     buildPresetAdditionalArgs: "['--config Release']"
+      - name: Configure (CMake + vcpkg toolchain)
+        run: |
+          cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_FEATURE_FLAGS=manifests
 
       - name: Build
-        run: cmake --build build -j
+        run: cmake --build "$BUILD_DIR" -j
 
       - name: Archive
         uses: actions/upload-artifact@v4
         with:
-          name: cpp_quant
-          path: build/cpp_quant
+          name: quant_engine
+          path: ${{ env.BUILD_DIR }}/quant_engine"
           if-no-files-found: error

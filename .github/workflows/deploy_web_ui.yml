@@ -6,14 +6,13 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    environment: staging
     env:
-      REG: registry.digitalocean.com/quant-registry
+      ROOT_DIR: web-ui
       REPO: cpp-quant
-      DO_CLUSTER: quant-dev
-      K8S_NS: quant
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set tags
         id: vars
@@ -36,9 +35,9 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
-            -t $REG/$REPO:${{ steps.vars.outputs.UI_TAG }} \
-            -t $REG/$REPO:ui-latest \
-            --push ./web-ui
+            -t $CONTAINER_REGISTRY/$REPO:${{ steps.vars.outputs.UI_TAG }} \
+            -t "$CONTAINER_REGISTRY/$REPO:ui-latest" \
+            --push "$ROOT_DIR"
 
       # Optional: prune old UI tags to avoid DOCR quota
       # - name: Prune old DOCR tags
@@ -49,6 +48,5 @@ jobs:
 
       - name: Rollout web-ui
         run: |
-          # Deployment name is 'web-ui', container name is also 'web-ui'
-          kubectl -n $K8S_NS set image deploy/web-ui web-ui=$REG/$REPO:${{ steps.vars.outputs.UI_TAG }}
+          kubectl -n $K8S_NS set image deploy/web-ui web-ui=$CONTAINER_REGISTRY/$REPO:${{ steps.vars.outputs.UI_TAG }}
           kubectl -n $K8S_NS rollout status deploy/web-ui

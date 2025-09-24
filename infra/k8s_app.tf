@@ -1,11 +1,11 @@
 locals {
   image_ref = "${var.image_registry}/${var.image_name}:${var.image_tag}"
-  labels    = { app = "cpp-quant" }
+  labels    = { app = "quant_engine" }
 }
 
 resource "kubernetes_deployment" "app" {
   metadata {
-    name      = "cpp-quant"
+    name      = "quant_engine"
     namespace = var.namespace
     labels    = local.labels
   }
@@ -63,7 +63,7 @@ resource "kubernetes_deployment" "app" {
 
 resource "kubernetes_service" "app" {
   metadata {
-    name      = "cpp-quant"
+    name      = "quant_engine"
     namespace = var.namespace
     labels    = local.labels
   }
@@ -79,13 +79,13 @@ resource "kubernetes_service" "app" {
 }
 resource "kubernetes_ingress_v1" "app" {
   metadata {
-    name      = "cpp-quant"
+    name      = "quant_engine"
     namespace = var.namespace
     annotations = {
-      "kubernetes.io/ingress.class"    = "nginx"
-      "cert-manager.io/cluster-issuer" = "letsencrypt"
-      "nginx.ingress.kubernetes.io/proxy-read-timeout"     = "3600"
-      "nginx.ingress.kubernetes.io/proxy-send-timeout"     = "3600"
+      "kubernetes.io/ingress.class"                    = "nginx"
+      "cert-manager.io/cluster-issuer"                 = "letsencrypt"
+      "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
+      "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
     }
   }
 
@@ -103,7 +103,7 @@ resource "kubernetes_ingress_v1" "app" {
           path_type = "Prefix"
           backend {
             service {
-              name = kubernetes_service.app.metadata[0].name   # backend service
+              name = kubernetes_service.app.metadata[0].name # backend service
               port { name = "http" }
             }
           }
@@ -126,7 +126,7 @@ resource "kubernetes_ingress_v1" "app" {
 
 resource "kubernetes_horizontal_pod_autoscaler_v2" "app" {
   metadata {
-    name      = "cpp-quant"
+    name      = "quant_engine"
     namespace = var.namespace
   }
   spec {

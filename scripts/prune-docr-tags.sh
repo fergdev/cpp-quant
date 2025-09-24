@@ -14,7 +14,7 @@ echo "All tags (newest first):"
 list_sorted | cat
 
 BACKEND_TAGS=$(list_sorted | grep -E '^[0-9a-f]{7,40}$' || true)
-# UI_TAGS=$(list_sorted | grep -E '^ui-[0-9a-f]{7,40}$' || true)
+UI_TAGS=$(list_sorted | grep -E '^ui-[0-9a-f]{7,40}$' || true)
 
 prune_list() {
   local KEEP="$1"
@@ -35,8 +35,8 @@ prune_list() {
 echo "--- Pruning backend tags (keep $KEEP) ---"
 echo "${BACKEND_TAGS}" | prune_list "$KEEP"
 
-# echo "--- Pruning UI tags (keep $KEEP) ---"
-# echo "${UI_TAGS}" | prune_list "$KEEP"
+echo "--- Pruning UI tags (keep $KEEP) ---"
+echo "${UI_TAGS}" | prune_list "$KEEP"
 
 echo "--- Registry GC ---"
 doctl registry garbage-collection start --include-untagged-manifests --force
