@@ -1,7 +1,10 @@
 name: deploy-web-ui
 on:
-  push:
+  pull_request:
     branches: ["main"]
+    paths:
+      - "web-ui/**"
+      - ".github/workflows/web_ui/**"
 
 jobs:
   docker:
