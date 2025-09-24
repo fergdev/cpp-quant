@@ -77,7 +77,6 @@ resource "kubernetes_service" "app" {
     type = "ClusterIP"
   }
 }
-
 resource "kubernetes_ingress_v1" "app" {
   metadata {
     name      = "cpp-quant"
@@ -85,30 +84,44 @@ resource "kubernetes_ingress_v1" "app" {
     annotations = {
       "kubernetes.io/ingress.class"    = "nginx"
       "cert-manager.io/cluster-issuer" = "letsencrypt"
+      "nginx.ingress.kubernetes.io/proxy-read-timeout"     = "3600"
+      "nginx.ingress.kubernetes.io/proxy-send-timeout"     = "3600"
     }
   }
+
   spec {
     tls {
       hosts       = [var.ingress_host]
       secret_name = "cpp-quant-tls"
     }
+
     rule {
       host = var.ingress_host
       http {
+        path {
+          path      = "/ws"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service.app.metadata[0].name   # backend service
+              port { name = "http" }
+            }
+          }
+        }
+
         path {
           path      = "/"
           path_type = "Prefix"
           backend {
             service {
-              name = kubernetes_service.app.metadata[0].name
-              port { number = 80 }
+              name = kubernetes_service.web_ui.metadata[0].name
+              port { name = "http" }
             }
           }
         }
       }
     }
   }
-  depends_on = [helm_release.ingress_nginx, kubernetes_manifest.cluster_issuer]
 }
 
 resource "kubernetes_horizontal_pod_autoscaler_v2" "app" {

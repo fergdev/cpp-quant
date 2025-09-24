@@ -1,0 +1,54 @@
+name: deploy-web-ui
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      REG: registry.digitalocean.com/quant-registry
+      REPO: cpp-quant
+      DO_CLUSTER: quant-dev
+      K8S_NS: quant
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set tags
+        id: vars
+        run: |
+          echo "SHA7=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          echo "UI_TAG=ui-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_ACCESS_TOKEN }}
+
+      - name: Login to DOCR
+        run: doctl registry login
+
+      - name: Build & push web-ui (linux/amd64)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -t $REG/$REPO:${{ steps.vars.outputs.UI_TAG }} \
+            -t $REG/$REPO:ui-latest \
+            --push ./web-ui
+
+      # Optional: prune old UI tags to avoid DOCR quota
+      # - name: Prune old DOCR tags
+      #   run: ./scripts/prune-docr-tags.sh || true
+
+      - name: Fetch kubeconfig
+        run: doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
+
+      - name: Rollout web-ui
+        run: |
+          # Deployment name is 'web-ui', container name is also 'web-ui'
+          kubectl -n $K8S_NS set image deploy/web-ui web-ui=$REG/$REPO:${{ steps.vars.outputs.UI_TAG }}
+          kubectl -n $K8S_NS rollout status deploy/web-ui

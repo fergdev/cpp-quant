@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+*.log
+.git
+.gitignore
+Dockerfile
+.dockerignore
+.vscode
+.idea
+.env
