@@ -1,4 +1,4 @@
-name: build-and-deploy
+name: deploy
 on:
   push: { branches: ["main"] }
 
@@ -35,6 +35,8 @@ jobs:
             --push .
 
       - name: Kubeconfig
+        env:
+          DO_CLUSTER: quant-dev
         run: doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
 
       - name: Rollout new image
