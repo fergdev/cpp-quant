@@ -15,7 +15,7 @@ jobs:
       CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY }}
       K8S_NS: ${{ vars.K8S_NS }}
       ROOT_DIR: engine
-      IMAGE: quant-engine
+      IMAGE: cpp-quant
       TAG: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v5
