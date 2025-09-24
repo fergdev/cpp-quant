@@ -22,12 +22,6 @@ variable "cluster_issuer" {
   default     = "letsencrypt-prod"
 }
 
-variable "registry_name" {
-  description = "DigitalOcean Container Registry name"
-  type        = string
-  default     = "quant-registry"
-}
-
 variable "image_registry" {
   description = "Registry endpoint"
   type        = string
@@ -86,8 +80,3 @@ variable "grafana_admin_password" {
   sensitive   = true
 }
 
-variable "loki_host" {
-  description = "Optional FQDN for Loki query-frontend (leave empty to skip Ingress)"
-  type        = string
-  default     = ""
-}

@@ -5,7 +5,7 @@ resource "kubernetes_namespace" "app" {
 locals {
   dockerconfigjson = jsonencode({
     auths = {
-      var.registry_host = {
+      (var.registry_host) = {
         auth = base64encode("oauth2accesstoken:${var.do_token}")
       }
     }

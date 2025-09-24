@@ -1,11 +1,11 @@
 locals {
   image_ref = "${var.image_registry}/${var.image_name}:${var.image_tag}"
-  labels    = { app = "quant_engine" }
+  labels    = { app = "quant-engine" }
 }
 
 resource "kubernetes_deployment" "app" {
   metadata {
-    name      = "quant_engine"
+    name      = "quant-engine"
     namespace = var.namespace
     labels    = local.labels
   }
@@ -63,7 +63,7 @@ resource "kubernetes_deployment" "app" {
 
 resource "kubernetes_service" "app" {
   metadata {
-    name      = "quant_engine"
+    name      = "quant-engine"
     namespace = var.namespace
     labels    = local.labels
   }
@@ -79,7 +79,7 @@ resource "kubernetes_service" "app" {
 }
 resource "kubernetes_ingress_v1" "app" {
   metadata {
-    name      = "quant_engine"
+    name      = "quant-engine"
     namespace = var.namespace
     annotations = {
       "kubernetes.io/ingress.class"                    = "nginx"
@@ -126,7 +126,7 @@ resource "kubernetes_ingress_v1" "app" {
 
 resource "kubernetes_horizontal_pod_autoscaler_v2" "app" {
   metadata {
-    name      = "quant_engine"
+    name      = "quant-engine"
     namespace = var.namespace
   }
   spec {
