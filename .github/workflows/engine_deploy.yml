@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     env:
+      CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY }}
       ROOT_DIR: engine
       IMAGE: quant-engine
       TAG: ${{ github.sha }}
@@ -29,7 +30,8 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
-            -t $CONTAINER_REGISTRY/$IMAGE:${{ github.sha }} -t "$CONTAINER_REGISTRY/$IMAGE:latest" \
+            -t $CONTAINER_REGISTRY/$IMAGE:${{ github.sha }} \
+            -t "$CONTAINER_REGISTRY/$IMAGE:latest" \
             --push ${ROOT_DIR}
 
       # - name: Prune old tags
