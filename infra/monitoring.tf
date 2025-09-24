@@ -9,42 +9,51 @@ resource "helm_release" "kps" {
   chart      = "kube-prometheus-stack"
   version    = "62.7.0"
 
-  values = [
-    yamlencode({
-      grafana = {
-        adminPassword = var.grafana_admin_password
-        ingress = {
-          enabled          = true
-          ingressClassName = "nginx"
-          annotations = {
-            "cert-manager.io/cluster-issuer"                 = var.cluster_issuer
-            "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
-            "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
-            "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
-          }
-          hosts = [var.grafana_host]
-          tls = [{
-            secretName = "grafana-cert"
-            hosts      = [var.grafana_host]
-          }]
-        }
-        persistence = { enabled = false }
-      }
+  timeout         = 900
+  wait            = true
+  cleanup_on_fail = true
+  force_update    = true
 
-      prometheus = {
-        prometheusSpec = {
-          retention = "15d"
-          resources = { requests = { cpu = "200m", memory = "1Gi" } }
-        }
-      }
+  values = [yamlencode({
+    crds = { enabled = true }
 
-      alertmanager = {
-        alertmanagerSpec = {
-          resources = { requests = { cpu = "100m", memory = "256Mi" } }
+    grafana = {
+      adminPassword = var.grafana_admin_password
+      ingress = {
+        enabled          = true
+        ingressClassName = "nginx"
+        annotations = {
+          "cert-manager.io/cluster-issuer"                 = var.cluster_issuer
+          "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+        }
+        hosts = [var.grafana_host]
+        tls   = [{ secretName = "grafana-cert", hosts = [var.grafana_host] }]
+      }
+      resources = {
+        requests = { cpu = "50m", memory = "256Mi" }
+        limits   = { cpu = "500m", memory = "512Mi" }
+      }
+    }
+
+    prometheus = {
+      prometheusSpec = {
+        retention = "7d"
+        resources = {
+          requests = { cpu = "200m", memory = "512Mi" }
+          limits   = { cpu = "800m", memory = "1Gi" }
         }
       }
-    })
-  ]
+    }
+
+    alertmanager = {
+      alertmanagerSpec = {
+        resources = {
+          requests = { cpu = "50m", memory = "128Mi" }
+          limits   = { cpu = "250m", memory = "256Mi" }
+        }
+      }
+    }
+  })]
 
   depends_on = [kubernetes_namespace.monitoring]
 }
@@ -56,25 +65,55 @@ resource "helm_release" "loki" {
   chart      = "loki"
   version    = "6.6.4"
 
+  timeout         = 900
+  wait            = true
+  cleanup_on_fail = true
+  force_update    = true
+  recreate_pods   = true
+
   values = [
     yamlencode({
       deploymentMode = "SingleBinary"
-      persistence    = { enabled = false }
-      resources      = { requests = { cpu = "100m", memory = "256Mi" } }
 
-      gateway = {
-        enabled = length(var.loki_host) > 0 ? true : false
-        ingress = {
-          enabled          = length(var.loki_host) > 0 ? true : false
-          ingressClassName = "nginx"
-          annotations = {
-            "cert-manager.io/cluster-issuer" = var.cluster_issuer
+      loki = {
+        auth_enabled = false
+        commonConfig = { replication_factor = 1 }
+
+        storage = {
+          type = "filesystem"
+          filesystem = {
+            chunks_directory = "/var/loki/chunks"
+            rules_directory  = "/var/loki/rules"
           }
-          hosts = [var.loki_host]
-          tls = [{
-            secretName = "loki-cert"
-            hosts      = [var.loki_host]
+        }
+
+        schemaConfig = {
+          configs = [{
+            from         = "2025-01-01"
+            store        = "boltdb-shipper"
+            object_store = "filesystem"
+            schema       = "v13"
+            index        = { prefix = "loki_index_", period = "24h" }
           }]
+        }
+        limits_config = {
+          allow_structured_metadata = false
+        }
+      }
+
+      chunksCache  = { enabled = false }
+      resultsCache = { enabled = false }
+      gateway      = { enabled = false }
+      ruler        = { enabled = false }
+      test         = { enabled = false }
+      read         = { replicas = 0 }
+      write        = { replicas = 0 }
+      backend      = { replicas = 0 }
+
+      singleBinary = {
+        resources = {
+          requests = { cpu = "100m", memory = "256Mi" }
+          limits   = { cpu = "500m", memory = "512Mi" }
         }
       }
     })
