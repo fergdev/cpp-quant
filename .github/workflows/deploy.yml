@@ -28,12 +28,10 @@ jobs:
             -t $REG/$IMAGE:${{ github.sha }} -t $REG/$IMAGE:latest \
             --push .
 
-      - name: Prune old tags
-        run: ./scripts/prune-docr-tags.sh
+      # - name: Prune old tags
+      #   run: ./scripts/prune-docr-tags.sh
 
       - name: Kubeconfig
-        env:
-          DO_CLUSTER: quant-dev
         run: doctl kubernetes cluster kubeconfig save "$DO_CLUSTER"
 
       - name: Rollout new image
