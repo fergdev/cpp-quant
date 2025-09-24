@@ -1,6 +1,6 @@
-name: web-ui-build
+name: web-ui-deploy
 on:
-  pull_request:
+  push:
     branches: ["main"]
     paths:
       - "web-ui/**"
