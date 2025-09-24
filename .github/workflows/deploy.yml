@@ -28,17 +28,13 @@ jobs:
             -t $REG/$IMAGE:${{ github.sha }} -t $REG/$IMAGE:latest \
             --push .
 
-      - name: Prune old tags
+      - name: Prune old DOCR tags (keep latest 5)
         run: |
-          KEEP=5
-          TAGS=$(doctl registry repository list-tags cpp-quant --format Tag,UpdatedAt --no-header \
-            | sort -k2 -r | awk '{print $1}')
-          n=0
-          for T in $TAGS; do
-            n=$((n+1))
-            [ $n -le $KEEP ] && continue
-            doctl registry repository delete-tag cpp-quant "$T" --force
-          done
+          doctl registry repository list-tags cpp-quant --format Tag,UpdatedAt --no-header \
+            | sort -k2 -r \
+            | awk '{print $1}' \
+            | tail -n +6 \
+            | xargs -r -n1 -I{} doctl registry repository delete-tag cpp-quant {} --force
 
       - name: Kubeconfig
         env:
