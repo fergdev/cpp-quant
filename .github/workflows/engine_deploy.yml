@@ -13,6 +13,7 @@ jobs:
     environment: staging
     env:
       CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY }}
+      K8S_NS: ${{ vars.K8S_NS }}
       ROOT_DIR: engine
       IMAGE: quant-engine
       TAG: ${{ github.sha }}
