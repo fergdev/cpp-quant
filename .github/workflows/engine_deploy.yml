@@ -38,7 +38,7 @@ jobs:
       #   run: ./scripts/prune-docr-tags.sh
 
       - name: Kubeconfig
-        run: doctl kubernetes cluster kubeconfig save ${{ vars.CONTAINER_REGISTRY }}
+        run: doctl kubernetes cluster kubeconfig save ${{ vars.DO_CLUSTER }}
 
       - name: Rollout new image
         run: |
