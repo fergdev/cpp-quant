@@ -1,0 +1,18 @@
+# build artifacts
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+
+# vcs / editor
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# misc
+.vcpkg-usage
