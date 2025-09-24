@@ -23,16 +23,22 @@ jobs:
 
       - name: Build & push (linux/amd64) with cache
         run: |
-          REG=registry.digitalocean.com/quant-registry
-          IMAGE=cpp-quant
-          CACHE_TAG=buildcache
-
           docker buildx build \
             --platform linux/amd64 \
             -t $REG/$IMAGE:${{ github.sha }} -t $REG/$IMAGE:latest \
-            --cache-to=type=registry,ref=$REG/$IMAGE:$CACHE_TAG,mode=max \
-            --cache-from=type=registry,ref=$REG/$IMAGE:$CACHE_TAG \
             --push .
+
+      - name: Prune old tags
+        run: |
+          KEEP=5
+          TAGS=$(doctl registry repository list-tags cpp-quant --format Tag,UpdatedAt --no-header \
+            | sort -k2 -r | awk '{print $1}')
+          n=0
+          for T in $TAGS; do
+            n=$((n+1))
+            [ $n -le $KEEP ] && continue
+            doctl registry repository delete-tag cpp-quant "$T" --force
+          done
 
       - name: Kubeconfig
         env:
