@@ -61,66 +61,20 @@ resource "kubernetes_deployment" "app" {
   }
 }
 
-resource "kubernetes_service" "app" {
+resource "kubernetes_service" "quant_engine" {
   metadata {
     name      = "quant-engine"
     namespace = var.namespace
-    labels    = local.labels
+    labels    = { app = "quant-engine" }
   }
   spec {
-    selector = local.labels
+    selector = { app = "quant-engine" }
     port {
       name        = "http"
       port        = 80
       target_port = "http"
     }
     type = "ClusterIP"
-  }
-}
-resource "kubernetes_ingress_v1" "app" {
-  metadata {
-    name      = "quant-engine"
-    namespace = var.namespace
-    annotations = {
-      "kubernetes.io/ingress.class"                    = "nginx"
-      "cert-manager.io/cluster-issuer"                 = "letsencrypt"
-      "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
-      "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
-    }
-  }
-
-  spec {
-    tls {
-      hosts       = [var.ingress_host]
-      secret_name = "cpp-quant-tls"
-    }
-
-    rule {
-      host = var.ingress_host
-      http {
-        path {
-          path      = "/ws"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = kubernetes_service.app.metadata[0].name # backend service
-              port { name = "http" }
-            }
-          }
-        }
-
-        path {
-          path      = "/"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = kubernetes_service.web_ui.metadata[0].name
-              port { name = "http" }
-            }
-          }
-        }
-      }
-    }
   }
 }
 

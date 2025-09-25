@@ -38,10 +38,7 @@ resource "helm_release" "cert_manager" {
   chart            = "cert-manager"
   namespace        = "cert-manager"
   create_namespace = true
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
+  values           = [yamlencode({ installCRDs = true })]
 }
 
 resource "kubernetes_manifest" "cluster_issuer" {
