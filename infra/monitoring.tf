@@ -33,6 +33,16 @@ resource "helm_release" "kps" {
         requests = { cpu = "50m", memory = "256Mi" }
         limits   = { cpu = "500m", memory = "512Mi" }
       }
+      additionalDataSources = [
+        {
+          name      = "Loki"
+          type      = "loki"
+          url       = "http://loki:3100"
+          access    = "proxy"
+          isDefault = false
+          jsonData  = { maxLines = 1000 }
+        }
+      ]
     }
 
     prometheus = {
@@ -141,4 +151,22 @@ resource "helm_release" "promtail" {
   ]
 
   depends_on = [helm_release.loki]
+}
+
+resource "helm_release" "otelcol" {
+  name       = "otelcol"
+  namespace  = "monitoring"
+  repository = "https://open-telemetry.github.io/opentelemetry-helm-charts"
+  chart      = "opentelemetry-collector"
+  version    = "0.98.1"
+
+  values = [file("${path.module}/otel-values.yaml")]
+
+  set = [
+    { name = "daemonset.securityContext.runAsUser", value = "0" },
+    { name = "daemonset.extraVolumes[0].name", value = "varlog" },
+    { name = "daemonset.extraVolumes[0].hostPath.path", value = "/var/log" },
+    { name = "daemonset.extraVolumeMounts[0].name", value = "varlog" },
+    { name = "daemonset.extraVolumeMounts[0].mountPath", value = "/var/log" },
+  ]
 }

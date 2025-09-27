@@ -18,5 +18,5 @@ struct MdBinance {
   MdBinance(boost::asio::io_context &io, boost::asio::ssl::context &ssl,
             Channel<Tick, 8192> &out);
 
-  void start(); // launches async reader
+  void start();
 };

@@ -1,3 +1,4 @@
+
 resource "kubernetes_ingress_v1" "quant" {
   metadata {
     name      = "quant-ingress"
