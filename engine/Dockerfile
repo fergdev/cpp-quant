@@ -16,7 +16,6 @@ WORKDIR /src
 
 COPY conanfile.* CMakeLists.txt ./
 RUN --mount=type=cache,target=/root/.conan2 \
-  conan remove boost -c && \
   conan profile detect --force && \
   conan install . -of build -s build_type=Release --build=missing
 
