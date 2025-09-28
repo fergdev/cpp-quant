@@ -24,6 +24,7 @@ target_link_libraries(quant_engine PRIVATE
   Boost::system
   OpenSSL::SSL OpenSSL::Crypto
   nlohmann_json::nlohmann_json
+  opentelemetry-cpp::sdk
   opentelemetry-cpp::trace
   opentelemetry-cpp::resources
   opentelemetry-cpp::exporter_otlp_http
