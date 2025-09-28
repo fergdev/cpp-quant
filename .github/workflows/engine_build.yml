@@ -21,9 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: lukka/get-cmake@latest
-
       - name: Setup Conan Client
         uses: conan-io/setup-conan@v1
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v1
 
       - name: Install Conan dependencies
         run: conan install "$ROOT_DIR" --build=missing
