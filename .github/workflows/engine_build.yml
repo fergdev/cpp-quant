@@ -16,7 +16,7 @@ jobs:
   build:
     defaults:
       run:
-        working-directory: web-ui
+        working-directory: engine
     runs-on: ubuntu-latest
     env:
       BUILD_DIR: build
