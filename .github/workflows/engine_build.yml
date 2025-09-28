@@ -14,27 +14,29 @@ on:
 
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: web-ui
     runs-on: ubuntu-latest
     env:
-      ROOT_DIR: engine
-      BUILD_DIR: engine/build
+      BUILD_DIR: build
     steps:
       - uses: actions/checkout@v5
       - uses: lukka/get-cmake@latest
-      - name: Setup Conan Client
-        uses: conan-io/setup-conan@v1
-
+      - uses: conan-io/setup-conan@v1
       - uses: seanmiddleditch/gha-setup-ninja@master
 
       - name: Install Conan dependencies
-        run: conan install "$ROOT_DIR" --build=missing
+        run: conan install --build=missing
 
-      - name: Configure
-        run: |
-          cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE="$BUILD_DIR/build/Release/generators/conan_toolchain.cmake" \
-            -DVCPKG_FEATURE_FLAGS=manifests
+      - name: Check
+        run: find build -maxdepth 3 -name conan_toolchain.cmake -print
+
+      - name: Configure (use Conan preset)
+        run: cmake --preset conan-release
+
+      - name: Build
+        run: cmake --build --preset conan-release -j
 
       - name: Build
         run: cmake --build "$BUILD_DIR" -j
