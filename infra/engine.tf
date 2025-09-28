@@ -3,6 +3,12 @@ locals {
   labels    = { app = "quant-engine" }
 }
 
+locals {
+  engine_env = [
+    { name = "ENGINE_LOG_LEVEL", value = "info" },
+    { name = "ENGINE_LOG_FORMAT", value = "json" },
+  ]
+}
 resource "kubernetes_deployment" "app" {
   metadata {
     name      = "quant-engine"
@@ -25,10 +31,18 @@ resource "kubernetes_deployment" "app" {
             name           = "http"
             container_port = 8080
           }
-
-          env {
-            name  = "CPPQ_WS_PORT"
-            value = "8080"
+          dynamic "env" {
+            for_each = concat(local.engine_env, [
+              { name = "CPPQ_WS_PORT", value = "8080" },
+              { name = "OTEL_SERVICE_NAME", value = "quant-engine" },
+              { name = "OTEL_TRACES_EXPORTER", value = "otlp" },
+              { name = "OTEL_EXPORTER_OTLP_ENDPOINT", value = "http://otelcol.monitoring.svc.cluster.local:4317" },
+              { name = "OTEL_RESOURCE_ATTRIBUTES", value = "deployment.environment=dev" },
+            ])
+            content {
+              name  = env.value.name
+              value = env.value.value
+            }
           }
           resources {
             requests = {
@@ -40,7 +54,6 @@ resource "kubernetes_deployment" "app" {
               memory = "512Mi"
             }
           }
-
 
           readiness_probe {
             tcp_socket {
