@@ -30,7 +30,7 @@ jobs:
         run: ls && pwd && cd engine
 
       - name: Install Conan dependencies
-        run: conan install --build=missing
+        run: conan install . --build=missing
 
       - name: Check
         run: find build -maxdepth 3 -name conan_toolchain.cmake -print
