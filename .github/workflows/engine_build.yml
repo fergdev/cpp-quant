@@ -26,6 +26,9 @@ jobs:
       - uses: conan-io/setup-conan@v1
       - uses: seanmiddleditch/gha-setup-ninja@master
 
+      - name: chdir
+        run: ls && pwd && cd engine
+
       - name: Install Conan dependencies
         run: conan install --build=missing
 
