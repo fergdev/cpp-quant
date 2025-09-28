@@ -26,20 +26,17 @@ jobs:
       - uses: conan-io/setup-conan@v1
       - uses: seanmiddleditch/gha-setup-ninja@master
 
-      - name: chdir
-        run: ls && pwd
-
       - name: Install Conan dependencies
         run: conan install . --build=missing
-
-      - name: Check
-        run: find build -maxdepth 3 -name conan_toolchain.cmake -print
 
       - name: Configure (use Conan preset)
         run: cmake --preset conan-release
 
       - name: Build
         run: cmake --build --preset conan-release -j
+
+      - name: Check
+        run: find build -maxdepth 3 -name quant_engine -print
 
       - name: Archive
         uses: actions/upload-artifact@v4
