@@ -21,7 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: lukka/get-cmake@latest
-      - uses: lukka/run-vcpkg@v11
+      # - uses: lukka/run-vcpkg@v11
+
+      - name: Setup Conan Client
+        uses: conan-io/setup-conan@v1
+
+      - name: Chdir
+        run: cd $ROOT_DIR
+
+      - name: Install Conan dependencies
+        run: conan install . --build=missing
+
       - name: Configure
         run: |
           cmake -S "$ROOT_DIR" -B "$BUILD_DIR" -G Ninja \
