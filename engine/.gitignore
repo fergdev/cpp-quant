@@ -8,6 +8,9 @@ cmake/
 /vcpkg_installed/
 /vcpkg-*
 
+/venv/
+/.venv/
+
 *.swp
 *.swo
 *.idea/
