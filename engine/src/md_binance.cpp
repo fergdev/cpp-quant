@@ -1,5 +1,6 @@
 #include "md_binance.hpp"
 #include <chrono>
+#include <cstdio>
 #include <opentelemetry/trace/provider.h>
 
 namespace asio = boost::asio;
@@ -41,6 +42,7 @@ static asio::awaitable<void> md_loop(MdBinance *self) {
       auto span = tracer->StartSpan("engine_boot");
       {
         auto scope = tracer->WithActiveSpan(span);
+
         Tick t{j.value("s", "BTCUSDT"),
                std::chrono::duration_cast<std::chrono::nanoseconds>(
                    std::chrono::system_clock::now().time_since_epoch())
@@ -49,6 +51,7 @@ static asio::awaitable<void> md_loop(MdBinance *self) {
                std::stod(j.value("b", "0")),
                std::stod(j.value("a", "0")),
                std::stod(j.value("v", "0"))};
+        printf("Tick ask: %f\n", t.ask);
         (void)self->out.push(t);
       }
     }

@@ -6,3 +6,4 @@ terraform.env
 *.tfstate.*
 terraform.tfvars
 .auto.tfvars
+tfplan
