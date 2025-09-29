@@ -15,6 +15,7 @@ jobs:
       CONTAINER_REGISTRY: ${{ vars.CONTAINER_REGISTRY }}
       K8S_NS: ${{ vars.K8S_NS }}
       ROOT_DIR: engine
+      DEPLOY: quant-engine
       IMAGE: cpp-quant
       TAG: ${{ github.sha }}
     steps:
@@ -43,5 +44,5 @@ jobs:
 
       - name: Rollout new image
         run: |
-          kubectl -n $K8S_NS set image deploy/$IMAGE app=$CONTAINER_REGISTRY/$IMAGE:$TAG
-          kubectl -n $K8S_NS rollout status deploy/$IMAGE
+          kubectl -n $K8S_NS set image deploy/$DEPLOY app=$CONTAINER_REGISTRY/$IMAGE:$TAG
+          kubectl -n $K8S_NS rollout status deploy/$DEPLOY
