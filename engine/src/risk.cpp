@@ -1,17 +1,41 @@
 #include "risk.hpp"
+#include <boost/asio.hpp>
 #include <cmath>
-#include <thread>
 
-Risk::Risk(Channel<Signal,4096>& i, Channel<OrderReq,4096>& o) : in(i), out(o) {}
+namespace asio = boost::asio;
 
-void Risk::run() {
-  Signal s;
+static OrderReq make_order(const Signal &s) {
+  OrderReq r{};
+  r.id = s.strat + "-" + std::to_string(s.ts_ns);
+  r.ts_ns = s.ts_ns;
+  r.qty = s.qty;
+  r.type = OrdType::Market;
+  return r;
+}
+
+static asio::awaitable<void> run_risk(Risk *self) {
   for (;;) {
-    if (!in.pop(s)) { std::this_thread::yield(); continue; }
-    double delta = (s.side == Side::Buy ? +s.qty : -s.qty);
-    if (std::abs(pos + delta) > max_pos) continue;
-    pos += delta;
-    out.push(OrderReq{ s.strat + "-" + std::to_string(s.ts_ns), s.sym, s.side,
-                       OrdType::Market, s.qty, 0.0, s.ts_ns });
+    auto sig = co_await self->in_signals.async_receive(asio::use_awaitable);
+
+    if (!std::isfinite(sig.qty) || sig.qty == 0.0) {
+      continue;
+    }
+
+    // TODO: place your risk checks here:
+    // - max notional per order
+    // - per-symbol position limits
+    // - rate limiting / cool-down
+    // - min tick size, etc.
+
+    OrderReq req = make_order(sig);
+    std::printf("[risk] pass id=%s qty=%f px=%f\n", req.id.c_str(), req.qty,
+                req.px);
+
+    co_await self->out_orders.async_send({}, req, asio::use_awaitable);
   }
+}
+
+void Risk::start() {
+  auto ex = in_signals.get_executor();
+  asio::co_spawn(ex, run_risk(this), asio::detached);
 }

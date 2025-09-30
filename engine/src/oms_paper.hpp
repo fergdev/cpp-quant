@@ -1,15 +1,25 @@
 #pragma once
-#include "bus.hpp"
 #include "types.hpp"
 #include <atomic>
+#include <boost/asio.hpp>
+#include <boost/asio/experimental/channel.hpp>
+
+namespace asio = boost::asio;
+template <class T>
+using AsioChan =
+    asio::experimental::channel<void(boost::system::error_code, T)>;
 
 struct OmsPaper {
-  Channel<OrderReq, 4096> &in;
-  Channel<OrderResp, 4096> &out_exec;
-  Channel<Tick, 8192> &tick_tap;
+  asio::any_io_executor ex;
+  AsioChan<OrderReq> &in_orders;
+  AsioChan<OrderResp> &out_execs;
+  AsioChan<Tick> &tick_tap;
+
   std::atomic<double> last_px{0.0};
 
-  OmsPaper(Channel<OrderReq, 4096> &i, Channel<OrderResp, 4096> &o,
-           Channel<Tick, 8192> &tap);
-  void run();
+  OmsPaper(asio::any_io_executor ex, AsioChan<OrderReq> &in,
+           AsioChan<OrderResp> &out, AsioChan<Tick> &tap)
+      : ex(ex), in_orders(in), out_execs(out), tick_tap(tap) {}
+
+  void start();
 };
