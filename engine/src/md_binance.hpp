@@ -11,11 +11,13 @@
 struct MdBinance {
   asio::io_context &ioc;
   asio::ssl::context &ssl_ctx;
-  std::string host = "stream.binance.com";
-  std::string port = "9443";
-  std::string path = "/ws/btcusdt@ticker";
+  std::string host;
+  uint16_t port;
+  std::string path;
+  bool use_tls = true;
   AsioChan<Tick> &out;
 
-  MdBinance(asio::io_context &io, asio::ssl::context &ssl, AsioChan<Tick> &out);
+  MdBinance(asio::io_context &io, asio::ssl::context &ssl, AsioChan<Tick> &out,
+            std::string host, uint16_t port, std::string path, bool use_tls);
   void start();
 };

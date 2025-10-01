@@ -19,7 +19,6 @@ static asio::awaitable<void> run_sma(StratSMA *self) {
 
     const double sma = self->sum / self->w;
 
-    // simple band (±0.1%) -> tweak as needed
     if (t.last > sma * 1.001) {
       std::printf("[sma] BUY  sym=%s last=%.4f sma=%.4f\n", t.sym.c_str(),
                   t.last, sma);
