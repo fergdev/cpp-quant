@@ -9,9 +9,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(opentelemetry-cpp CONFIG REQUIRED)
 find_package(Threads REQUIRED)
-# find_package(Curl REQUIRED)
 find_package(CURL CONFIG REQUIRED)
-
 
 add_executable(quant_engine
     src/main.cpp
