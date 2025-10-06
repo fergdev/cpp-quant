@@ -14,7 +14,7 @@ async def run_orders_api():
         server.app,
         host=host,
         port=port,
-        log_level="debug",
+        log_level="info",
         loop="asyncio",
     )
     server_ = uvicorn.Server(config)

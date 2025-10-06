@@ -23,7 +23,6 @@ TEST(RiskStage, PassesValidSignalAsMarketOrder) {
   s.sym = "BTCUSDT";
   s.side = Side::Buy;
   s.qty = 0.01;
-  // s.px = 0.0;
   s.ts_ns = 123456789;
 
   std::promise<OrderReq> got_order;

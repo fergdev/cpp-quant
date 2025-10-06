@@ -6,7 +6,7 @@ JOBS       ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo
 
 # -------- paths to artifacts --------
 BIN        ?= $(BUILD_DIR)/quant_engine
-CCJSON     ?= $(BUILD_DIR)/compile_commands.json
+CCJSON     ?= $(BUILD_DIR)/$(CONF)/compile_commands.json
 
 # -------- phony targets --------
 .PHONY: help install configure build all test run clean ccjson
@@ -29,7 +29,7 @@ configure: install
 	cmake --preset ${PRESET}
 
 build all: configure
-	cmake --build --preset conan-release -j
+	cmake --build --preset conan-release -j -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 test: build
 	ctest --test-dir $(BUILD_DIR)/$(CONF) --output-on-failure --output-junit ctest-junit.xml

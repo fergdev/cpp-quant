@@ -33,7 +33,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quant_engine
-          path: ./engine/build/Release/quant_engine
+          path: ./engine/build/Release/src/quant_engine
           if-no-files-found: error
 
       - name: Archive tests
