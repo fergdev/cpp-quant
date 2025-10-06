@@ -1,31 +1,102 @@
 #include "oms_paper.hpp"
-#include <cstdio>
+#include "oms_binance.hpp"
+#include <boost/asio/redirect_error.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/tcp_stream.hpp>
+#include <boost/beast/http.hpp>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+#include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
+namespace beast = boost::beast;
 namespace asio = boost::asio;
+namespace http = beast::http;
 
-static asio::awaitable<void> track_ticks(OmsPaper *self) {
-  for (;;) {
-    auto t = co_await self->tick_tap.async_receive(asio::use_awaitable);
-    self->last_px.store(t.last, std::memory_order_relaxed);
+asio::awaitable<nlohmann::json> post_json(std::string host, uint16_t port,
+                                          std::string target,
+                                          nlohmann::json body) {
+  using tcp = asio::ip::tcp;
+
+  beast::flat_buffer buffer;
+  tcp::resolver res{co_await asio::this_coro::executor};
+
+  auto results = co_await res.async_resolve(host, std::to_string(port),
+                                            asio::use_awaitable);
+
+  beast::tcp_stream stream{co_await asio::this_coro::executor};
+  boost::system::error_code ec;
+  co_await stream.async_connect(results,
+                                asio::redirect_error(asio::use_awaitable, ec));
+  if (ec)
+    throw std::runtime_error("connect failed: " + ec.message());
+
+  http::request<http::string_body> req{http::verb::post, target, 11};
+  req.set(http::field::host, host);
+  req.set(http::field::content_type, "application/json");
+  req.body() = body.dump();
+  req.prepare_payload();
+
+  http::response<http::string_body> resp;
+
+  co_await http::async_write(stream, req,
+                             asio::redirect_error(asio::use_awaitable, ec));
+  if (ec)
+    throw std::runtime_error("write failed: " + ec.message());
+
+  co_await http::async_read(stream, buffer, resp,
+                            asio::redirect_error(asio::use_awaitable, ec));
+  if (ec)
+    throw std::runtime_error("read failed: " + ec.message());
+
+  stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+
+  if (resp.result() != http::status::ok) {
+    throw std::runtime_error(
+        "HTTP " + std::to_string(static_cast<unsigned>(resp.result())));
   }
-}
 
-static asio::awaitable<void> process_orders(OmsPaper *self) {
-  for (;;) {
-    auto r = co_await self->in_orders.async_receive(asio::use_awaitable);
-
-    double px = (r.type == OrdType::Market)
-                    ? self->last_px.load(std::memory_order_relaxed)
-                    : r.px;
-
-    std::printf("Order filled id=%s qty=%f px=%f\n", r.id.c_str(), r.qty, px);
-
-    OrderResp resp{r.id, OrdStatus::Filled, r.qty, px, nullptr, r.ts_ns};
-    co_await self->out_execs.async_send({}, resp, asio::use_awaitable);
-  }
+  co_return nlohmann::json::parse(resp.body(), nullptr, true);
 }
 
 void OmsPaper::start() {
-  asio::co_spawn(ex, track_ticks(this), asio::detached);
-  asio::co_spawn(ex, process_orders(this), asio::detached);
+  asio::co_spawn(
+      ex,
+      [this]() -> asio::awaitable<void> {
+        for (;;) {
+          Tick t = co_await tick_tap.async_receive(asio::use_awaitable);
+          last_px.store(t.last, std::memory_order_relaxed);
+        }
+      },
+      asio::detached);
+
+  asio::co_spawn(
+      ex,
+      [this]() -> asio::awaitable<void> {
+        for (;;) {
+          OrderReq req = co_await in_orders.async_receive(asio::use_awaitable);
+          spdlog::info("Paper order '{}'", req.sym);
+          double hint = last_px.load(std::memory_order_relaxed);
+
+          OrderResp out{};
+          out.id = req.id;
+          out.ts_ns = req.ts_ns;
+
+          try {
+            out = co_await binance_place_order_spot(
+                req, hint, binance_api_key, binance_secret, binance_host,
+                binance_recv_window);
+          } catch (const std::exception &e) {
+            out.st = OrdStatus::Rejected;
+            out.filled_qty = 0.0;
+            out.avg_px = 0.0;
+            out.err = e.what();
+          }
+
+          co_await out_execs.async_send({}, out, asio::use_awaitable);
+        }
+      },
+      asio::detached);
 }

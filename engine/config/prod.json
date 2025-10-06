@@ -1,0 +1,15 @@
+{
+  "md_host": "stream.binance.com",
+  "md_port": 9443,
+  "md_path": "/ws/btcusdt@ticker",
+  "md_tls": false,
+  "ws_port": 8080,
+  "sma_window": 20,
+  "buy_threshold": 1.001,
+  "sell_threshold": 0.999,
+  "otlp_enable": false,
+  "binance_api_key": "prd_key",
+  "binance_secret": "prod_secret",
+  "binance_host": "api.binance.com",
+  "binance_recv_window": 5000
+}

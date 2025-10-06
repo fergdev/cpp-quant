@@ -1,12 +1,14 @@
 #include "risk.hpp"
 #include <boost/asio.hpp>
 #include <cmath>
+#include <spdlog/spdlog.h>
 
 namespace asio = boost::asio;
 
 static OrderReq make_order(const Signal &s) {
   OrderReq r{};
   r.id = s.strat + "-" + std::to_string(s.ts_ns);
+  r.sym = s.sym;
   r.ts_ns = s.ts_ns;
   r.qty = s.qty;
   r.type = OrdType::Market;
@@ -28,8 +30,8 @@ static asio::awaitable<void> run_risk(Risk *self) {
     // - min tick size, etc.
 
     OrderReq req = make_order(sig);
-    std::printf("[risk] pass id=%s qty=%f px=%f\n", req.id.c_str(), req.qty,
-                req.px);
+    spdlog::info("[risk] pass sym={} id={} qty={} px={}\n", req.sym,
+                 req.id.c_str(), req.qty, req.px);
 
     co_await self->out_orders.async_send({}, req, asio::use_awaitable);
   }

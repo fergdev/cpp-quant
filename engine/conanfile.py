@@ -14,24 +14,9 @@ class QuantEngineRecipe(ConanFile):
     def requirements(self):
         self.requires("openssl/3.3.2")
         self.requires("nlohmann_json/3.11.3")
-        self.requires(
-            "boost/1.88.0",
-            options={
-                # "boost/*:shared": False
-                #     "without_type_erasure": True,
-                # "without_log": False,
-                #     "without_test": True,
-                #     "without_timer": True,
-                #     "without_thread": True,
-                #     "without_locale": True,
-                #     "without_fiber": True,
-                #     "without_contract": True,
-                #     "without_wave": True,
-                #     "without_nowide": True,
-                #     "without_iostreams": True,
-                #     "without_graph": True,
-            },
-        )
+        self.requires("spdlog/1.15.3")
+        self.requires("gtest/1.17.0")
+        self.requires("boost/1.88.0")
         self.requires(
             "opentelemetry-cpp/1.22.0",
             options={

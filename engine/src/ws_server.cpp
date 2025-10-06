@@ -7,6 +7,7 @@
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
+namespace websocket = beast::websocket;
 using json = nlohmann::json;
 
 static asio::awaitable<void> accept_loop(WsServer *self) {
@@ -17,10 +18,9 @@ static asio::awaitable<void> accept_loop(WsServer *self) {
     if (ec)
       continue;
 
-    auto ws = std::make_shared<beast::websocket::stream<tcp::socket>>(
-        std::move(sock));
-    ws->set_option(beast::websocket::stream_base::timeout::suggested(
-        beast::role_type::server));
+    auto ws = std::make_shared<websocket::stream<tcp::socket>>(std::move(sock));
+    ws->set_option(
+        websocket::stream_base::timeout::suggested(beast::role_type::server));
 
     co_await ws->async_accept(asio::redirect_error(asio::use_awaitable, ec));
     if (ec)

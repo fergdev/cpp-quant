@@ -29,4 +29,5 @@ struct OrderResp {
   double avg_px;
   const char *reason;
   int64_t ts_ns;
+  std::string err;
 };

@@ -1,5 +1,5 @@
 #include "strategy_sma.hpp"
-#include <cstdio>
+#include <spdlog/spdlog.h>
 
 namespace asio = boost::asio;
 
@@ -19,15 +19,12 @@ static asio::awaitable<void> run_sma(StratSMA *self) {
 
     const double sma = self->sum / self->w;
 
-    // simple band (±0.1%) -> tweak as needed
     if (t.last > sma * 1.001) {
-      std::printf("[sma] BUY  sym=%s last=%.4f sma=%.4f\n", t.sym.c_str(),
-                  t.last, sma);
+      spdlog::info("[sma] BUY  sym={} last={} sma={}", t.sym, t.last, sma);
       Signal s{"sma20", t.sym, Side::Buy, 0.01, 0.0, t.ts_ns};
       co_await self->out_signals.async_send({}, s, asio::use_awaitable);
     } else if (t.last < sma * 0.999) {
-      std::printf("[sma] SELL sym=%s last=%.4f sma=%.4f\n", t.sym.c_str(),
-                  t.last, sma);
+      spdlog::info("[sma] SELL sym={} last={} sma={}", t.sym, t.last, sma);
       Signal s{"sma20", t.sym, Side::Sell, 0.01, 0.0, t.ts_ns};
       co_await self->out_signals.async_send({}, s, asio::use_awaitable);
     }

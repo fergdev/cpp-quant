@@ -1,0 +1,15 @@
+{
+  "md_host": "127.0.0.1",
+  "md_port": 8081,
+  "md_path": "/ws",
+  "md_tls": false,
+  "ws_port": 8080,
+  "sma_window": 20,
+  "buy_threshold": 1.001,
+  "sell_threshold": 0.999,
+  "otlp_enable": false,
+  "binance_api_key": "dev_key",
+  "binance_secret": "dev_secret",
+  "binance_host": "127.0.0.1",
+  "binance_recv_window": 5000
+}
