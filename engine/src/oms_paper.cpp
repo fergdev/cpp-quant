@@ -1,4 +1,5 @@
 #include "oms_paper.hpp"
+#include "oms_binance.hpp"
 #include <boost/asio/redirect_error.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -6,27 +7,14 @@
 #include <boost/beast/http.hpp>
 #include <cstdint>
 #include <cstdlib>
+#include <iostream>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 namespace beast = boost::beast;
 namespace asio = boost::asio;
 namespace http = beast::http;
 
-static std::string env_or(const char *k, const char *def) {
-  if (const char *v = std::getenv(k))
-    return std::string(v);
-  return std::string(def);
-}
-static uint16_t env_u16_or(const char *k, uint16_t def) {
-  if (const char *v = std::getenv(k))
-    return static_cast<uint16_t>(std::stoi(v));
-  return def;
-}
-static int env_i_or(const char *k, int def) {
-  if (const char *v = std::getenv(k))
-    return std::stoi(v);
-  return def;
-}
 asio::awaitable<nlohmann::json> post_json(std::string host, uint16_t port,
                                           std::string target,
                                           nlohmann::json body) {
@@ -70,8 +58,7 @@ asio::awaitable<nlohmann::json> post_json(std::string host, uint16_t port,
         "HTTP " + std::to_string(static_cast<unsigned>(resp.result())));
   }
 
-  co_return nlohmann::json::parse(resp.body(), nullptr,
-                                  /*allow_exceptions*/ true);
+  co_return nlohmann::json::parse(resp.body(), nullptr, true);
 }
 
 void OmsPaper::start() {
@@ -79,7 +66,6 @@ void OmsPaper::start() {
       ex,
       [this]() -> asio::awaitable<void> {
         for (;;) {
-          boost::system::error_code ec;
           Tick t = co_await tick_tap.async_receive(asio::use_awaitable);
           last_px.store(t.last, std::memory_order_relaxed);
         }
@@ -89,36 +75,19 @@ void OmsPaper::start() {
   asio::co_spawn(
       ex,
       [this]() -> asio::awaitable<void> {
-        const std::string host = env_or("BT_OMS_HOST", "127.0.0.1");
-        const uint16_t port = env_u16_or("BT_OMS_PORT", 9000);
-        const std::string path = env_or("BT_OMS_PATH", "/orders");
-        const int t_ms = env_i_or("BT_OMS_TIMEOUT_MS", 2000);
-
         for (;;) {
           OrderReq req = co_await in_orders.async_receive(asio::use_awaitable);
-          double px_hint = last_px.load(std::memory_order_relaxed);
-
-          nlohmann::json jreq = {
-              {"id", req.id},
-              {"sym", req.sym},
-              {"side", (req.side == Side::Buy ? "Buy" : "Sell")},
-              {"type", (req.type == OrdType::Market ? "Market" : "Limit")},
-              {"qty", req.qty},
-              {"px", req.px},
-              {"ts_ns", req.ts_ns},
-              {"last_px_hint", px_hint}};
+          spdlog::info("Paper order '{}'", req.sym);
+          double hint = last_px.load(std::memory_order_relaxed);
 
           OrderResp out{};
           out.id = req.id;
           out.ts_ns = req.ts_ns;
 
           try {
-
-            auto resp = co_await post_json(host, port, path, jreq);
-            out.st = OrdStatus::Filled;
-            out.filled_qty = resp.value("filled_qty", req.qty);
-            out.avg_px = resp.value("avg_px", req.px);
-            out.err.clear();
+            out = co_await binance_place_order_spot(
+                req, hint, binance_api_key, binance_secret, binance_host,
+                binance_recv_window);
           } catch (const std::exception &e) {
             out.st = OrdStatus::Rejected;
             out.filled_qty = 0.0;

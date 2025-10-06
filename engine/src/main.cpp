@@ -4,13 +4,14 @@
 #include "md_binance.hpp"
 #include "oms_paper.hpp"
 #include "risk.hpp"
+#include "spdlog/spdlog.h"
 #include "strategy_sma.hpp"
 #include "ws_server.hpp"
 #include <boost/asio/ssl.hpp>
-#include <iostream>
 
 int main(int argc, char **argv) {
-  printf("Engine started\n");
+  spdlog::set_level(spdlog::level::info);
+  spdlog::info("Engine loading\n");
 
   std::string explicit_config;
   for (int i = 1; i < argc; ++i) {
@@ -20,13 +21,13 @@ int main(int argc, char **argv) {
   }
 
   if (explicit_config.empty()) {
-    std::cerr << "No --config= specified" << std::endl;
+    spdlog::error("No --config= specified");
     return -1;
   }
 
   EngineConfig config;
   if (!loadFromJsonFile(config, explicit_config)) {
-    std::cerr << "Could not load config from " << explicit_config << std::endl;
+    spdlog::error("Could not load config from %s", explicit_config);
     return -1;
   }
 
@@ -46,7 +47,14 @@ int main(int argc, char **argv) {
 
   StratSMA strat{ioc.get_executor(), bus.ticks, bus.signals};
   Risk risk{bus.signals, bus.order_reqs};
-  OmsPaper oms{ioc.get_executor(), bus.order_reqs, bus.execs, bus.ticks};
+  OmsPaper oms{ioc.get_executor(),
+               bus.order_reqs,
+               bus.execs,
+               bus.ticks,
+               config.binance_api_key,
+               config.binance_secret,
+               config.binance_host,
+               config.binance_recv_window};
   WsServer ws{ioc, 8080, bus.ticks, bus.execs};
 
   md.start();
@@ -58,6 +66,7 @@ int main(int argc, char **argv) {
   std::vector<std::thread> pool;
   for (int i = 0; i < 2; ++i)
     pool.emplace_back([&] { ioc.run(); });
+  spdlog::info("Engine started");
   for (auto &t : pool)
     t.join();
 }

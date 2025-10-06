@@ -33,5 +33,11 @@ inline bool loadFromJsonFile(EngineConfig &c, const std::string &path) {
   get("sell_threshold", c.sell_threshold);
   get("otlp_enable", c.otlp_enable);
   get("otlp_http_endpoint", c.otlp_http_endpoint);
+
+  get("binance_api_key", c.binance_api_key);
+  get("binance_secret", c.binance_secret);
+  get("binance_host", c.binance_host);
+  get("binance_recv_window", c.binance_recv_window);
+
   return true;
 }

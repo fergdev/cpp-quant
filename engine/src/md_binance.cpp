@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstdio>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <string>
 
 #include <opentelemetry/trace/provider.h>
@@ -58,8 +59,8 @@ static asio::awaitable<void> run_ws_loop(MdBinance *self, WebSocket &ws) {
         get_num("v"),
     };
 
-    std::printf("[md] %s last=%.4f bid=%.4f ask=%.4f vol24=%.4f\n",
-                t.sym.c_str(), t.last, t.bid, t.ask, t.vol24);
+    spdlog::debug("[md] %s last=%.4f bid=%.4f ask=%.4f vol24=%.4f\n",
+                  t.sym.c_str(), t.last, t.bid, t.ask, t.vol24);
 
     auto span = tracer->StartSpan("md.publish_tick");
     {

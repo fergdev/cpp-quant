@@ -8,13 +8,13 @@ from typing import Any, Iterable, Iterator, Tuple
 import websockets
 
 DATA_FILE = os.getenv("BT_DATA", "btcusd/btcusd_1-min_last_week.csv")
-DELAY = float(os.getenv("BT_SPEED", "1000"))
+DELAY = float(os.getenv("BT_SPEED", "10"))
 HOST = os.getenv("BT_FEED_HOST", "127.0.0.1")
 PORT = int(os.getenv("BT_FEED_PORT", "8081"))
 PATH = os.getenv("BT_FEED_PATH", "/ws")
 SYMS = {s for s in os.getenv("BT_SYMBOLS", "").split(",") if s}
 
-Row = Tuple[int, str, float, float, float, float]  # ts_ns, sym, last, bid, ask, vol
+Row = Tuple[int, str, float, float, float, float]
 
 
 def _as_int(x: Any) -> int:

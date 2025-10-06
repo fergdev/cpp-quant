@@ -16,4 +16,9 @@ struct EngineConfig {
 
   bool otlp_enable = false;
   std::string otlp_http_endpoint = "http://tempo:4318";
+
+  std::string binance_api_key;
+  std::string binance_secret;
+  std::string binance_host;
+  int binance_recv_window;
 };

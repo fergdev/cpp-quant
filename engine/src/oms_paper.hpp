@@ -14,12 +14,20 @@ struct OmsPaper {
   AsioChan<OrderReq> &in_orders;
   AsioChan<OrderResp> &out_execs;
   AsioChan<Tick> &tick_tap;
+  std::string binance_api_key;
+  std::string binance_secret;
+  std::string binance_host;
+  int binance_recv_window;
 
   std::atomic<double> last_px{0.0};
 
   OmsPaper(asio::any_io_executor ex, AsioChan<OrderReq> &in,
-           AsioChan<OrderResp> &out, AsioChan<Tick> &tap)
-      : ex(ex), in_orders(in), out_execs(out), tick_tap(tap) {}
+           AsioChan<OrderResp> &out, AsioChan<Tick> &tap,
+           std::string binance_api_key, std::string binance_secret,
+           std::string binance_host, int binance_recv_window)
+      : ex(ex), in_orders(in), out_execs(out), tick_tap(tap),
+        binance_api_key(binance_api_key), binance_secret(binance_secret),
+        binance_host(binance_host), binance_recv_window(binance_recv_window) {}
 
   void start();
 };
